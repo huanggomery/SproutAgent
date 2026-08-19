@@ -18,8 +18,10 @@ class ToolResult(BaseModel):
     """工具调用结果模型。"""
 
     name: str
+    arguments: dict[str, Any] | None = None
     tool_call_id: str
     content: str
+    status: Literal["success", "failed"] = "success"
 
 
 class Tool(ABC):

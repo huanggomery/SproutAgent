@@ -13,13 +13,14 @@ class SimpleAgent(Agent):
     当达到最大步数限制时，会强制模型直接给出最终回答。
     """
 
-    def __init__(self, llm: SproutLLM) -> None:
+    def __init__(self, llm: SproutLLM, system_prompt: str | None = None) -> None:
         """初始化 SimpleAgent。
 
         Args:
             llm: 大语言模型客户端实例。
+            system_prompt: 系统提示词，用于设定 Agent 的角色和行为规范。
         """
-        super().__init__(llm)
+        super().__init__(llm, system_prompt)
 
     def run(self, input: str, **kwargs: Any) -> str:
         """执行 SimpleAgent 的核心逻辑。
@@ -27,7 +28,7 @@ class SimpleAgent(Agent):
         Args:
             input: 用户输入的任务或问题。
             **kwargs: 额外参数，支持：
-                - max_steps (int): 最大工具调用轮数，默认为 5。
+                - max_steps (int): 最大工具调用轮数，默认为 10。
 
         Returns:
             Agent 执行后的最终响应结果。
@@ -35,7 +36,7 @@ class SimpleAgent(Agent):
         Raises:
             ValueError: 当 max_steps 不是正整数时抛出。
         """
-        max_steps = kwargs.get("max_steps", 5)
+        max_steps = kwargs.get("max_steps", 10)
         if not isinstance(max_steps, int) or max_steps <= 0:
             raise ValueError("max_steps 必须是正整数")
 
