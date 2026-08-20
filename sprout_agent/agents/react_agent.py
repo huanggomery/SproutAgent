@@ -85,32 +85,7 @@ class ReActAgent(Agent):
             return "\n".join([*lines, "", "（无）", "", "------"])
 
         for index, message in enumerate(conversation_messages, start=1):
-            lines.extend(
-                [
-                    "",
-                    f"[消息 {index}]",
-                    f"Role: {message.role}",
-                ]
-            )
-            if message.tool_call_id:
-                lines.append(f"Tool Call ID: {message.tool_call_id}")
-            lines.extend(["Content:", message.content or "（空）"])
-
-            if not message.tool_calls:
-                continue
-
-            # 工具调用属于 assistant 消息，使用缩进保留这一层级关系。
-            lines.append("Tool Calls:")
-            for tool_call in message.tool_calls:
-                function = tool_call.get("function", {})
-                arguments = function.get("arguments", "{}")
-                lines.extend(
-                    [
-                        f"  - Call ID: {tool_call.get('id', '')}",
-                        f"    Tool: {function.get('name', '')}",
-                        f"    Arguments: {arguments}",
-                    ]
-                )
+            lines.extend(["", f"[消息 {index}]", message.to_str()])
         lines.extend(["", "------"])
         return "\n".join(lines)
 

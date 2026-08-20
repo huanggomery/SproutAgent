@@ -1,6 +1,5 @@
-import json
 from abc import ABC, abstractmethod
-from typing import Any, Literal
+from typing import Any
 
 from sprout_agent.core.llm import SproutLLM
 from sprout_agent.core.message import Message
@@ -63,30 +62,4 @@ class Agent(ABC):
 
     def execute_tool_calls(self, tool_calls: list[Any]) -> list[ToolResult]:
         """执行模型发起的工具调用，并返回参数、结果和执行状态。"""
-        results: list[ToolResult] = []
-        for tool_call in tool_calls:
-            tool_name = tool_call.function.name
-            params: dict[str, Any] | None = None
-            status: Literal["success", "failed"] = "success"
-            try:
-                parsed_arguments = json.loads(tool_call.function.arguments)
-                if not isinstance(parsed_arguments, dict):
-                    raise ValueError("工具参数必须是 JSON 对象")
-                params = parsed_arguments
-                result = self.tools.execute_tool(tool_name, params)
-            except Exception as error:
-                # 单个工具失败时仍返回对应结果，保证后续对话中的工具调用链完整。
-                result = f"工具 {tool_name} 调用失败：{error}"
-                status = "failed"
-                print(f"⚠️ 警告: {result}")
-
-            results.append(
-                ToolResult(
-                    name=tool_name,
-                    tool_call_id=tool_call.id,
-                    content=result,
-                    arguments=params,
-                    status=status,
-                )
-            )
-        return results
+        return self.tools.execute_tool_calls(tool_calls)

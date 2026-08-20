@@ -1,3 +1,4 @@
+import json
 from abc import ABC, abstractmethod
 from typing import Any, Literal
 
@@ -101,6 +102,35 @@ class ToolManager:
         """执行指定工具并返回结果。"""
         tool = self.get_tool(tool_name)
         return tool.execute(params)
+
+    def execute_tool_calls(self, tool_calls: list[Any]) -> list[ToolResult]:
+        """执行模型发起的工具调用，并返回参数、结果和执行状态。"""
+        results: list[ToolResult] = []
+        for tool_call in tool_calls:
+            tool_name = tool_call.function.name
+            params: dict[str, Any] | None = None
+            status: Literal["success", "failed"] = "success"
+            try:
+                parsed_arguments = json.loads(tool_call.function.arguments)
+                if not isinstance(parsed_arguments, dict):
+                    raise ValueError("工具参数必须是 JSON 对象")
+                params = parsed_arguments
+                result = self.execute_tool(tool_name, params)
+            except Exception as error:
+                result = f"工具 {tool_name} 调用失败：{error}"
+                status = "failed"
+                print(f"⚠️ 警告: {result}")
+
+            results.append(
+                ToolResult(
+                    name=tool_name,
+                    tool_call_id=tool_call.id,
+                    content=result,
+                    arguments=params,
+                    status=status,
+                )
+            )
+        return results
     
     def to_openai_schema(self) -> list[dict[str, Any]]:
         """转换为 OpenAI/DeepSeek 兼容的工具定义格式。"""
